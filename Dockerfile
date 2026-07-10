@@ -2,14 +2,21 @@ FROM node:16-alpine
 
 WORKDIR /app
 
+# Copy package files
 COPY package*.json ./
-RUN npm ci --production=false
 
+# Fix for old projects with fsevents/macOS dependencies
+RUN npm install --legacy-peer-deps --no-optional
+
+# Copy source code
 COPY . .
+
+# Build the production app
 RUN npm run build
 
-RUN npm install -g serve pm2
+# Install a lightweight static file server
+RUN npm install -g serve
 
 EXPOSE 3000
 
-CMD ["pm2-runtime", "start", "npx", "--", "serve", "-s", "build", "-l", "3000"]
+CMD ["serve", "-s", "build", "-l", "3000"]
